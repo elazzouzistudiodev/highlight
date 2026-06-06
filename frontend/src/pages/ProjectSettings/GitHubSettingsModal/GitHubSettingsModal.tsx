@@ -10,12 +10,12 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
+	Select,
 	Text,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -120,8 +120,7 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop()!,
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -143,6 +142,8 @@ const GithubSettingsForm = ({
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
 		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
 
+	const buildPrefixExample = formState.values.buildPrefix ?? ''
+
 	return (
 		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
 			<Box px="12" py="8" gap="12" display="flex" flexDirection="column">
@@ -153,22 +154,16 @@ const GithubSettingsForm = ({
 					<Box display="flex" alignItems="center" gap="8">
 						<Select
 							aria-label="GitHub repository"
-							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							onValueChange={(repo: { value: string }) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									String(repo.value),
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
+							value={formState.values.githubRepo ?? undefined}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							filterable
 						/>
 						<ButtonIcon
 							kind="secondary"
@@ -275,7 +270,7 @@ const GithubSettingsForm = ({
 							</Tooltip>
 							<Text break="all">
 								e.g.{' '}
-								<i>{formState.values.buildPrefix}/README.md</i>{' '}
+								<Text as="i">{buildPrefixExample}/README.md</Text>{' '}
 								→{' '}
 								<TextLink href={exampleLink} target="_blank">
 									{exampleLink}
